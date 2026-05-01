@@ -45,7 +45,7 @@ class Field {
     const getRandomPosition = () => { //get random position in field [y,x].
         return [Math.floor(Math.random()*height), Math.floor(Math.random()*width)];
     }
-    for (let i = 0; i < numberOfHoles; i++) { //replace random positions with holes, checking that spaces aren't being repeated.
+    for (let i = 0; i < numberOfHoles; i++) { //replace random tiles with holes, checking that spaces aren't being repeated or replacing the starting tile.
         let randomPosition = getRandomPosition();
         let targetPosition = field[randomPosition[0]][randomPosition[1]];
         while (targetPosition === hole || targetPosition === pathCharacter) {
@@ -54,7 +54,14 @@ class Field {
         };
         field[randomPosition[0]][randomPosition[1]] = hole;
     };
-    
+    if (field[height - 1].every(x => x === hole)) {
+        throw new Error('Impossible field generated. Try again or reduce proportion of holes.');
+    }
+    let randomWidth = Math.floor(Math.random()*width);
+    while (field[height - 1][randomWidth] === hole) {
+        randomWidth = Math.floor(Math.random()*width);
+    }
+    field[height-1][randomWidth] = hat;
     return field;
   }
   print() {
