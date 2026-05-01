@@ -5,6 +5,11 @@ const hole = 'O';
 const fieldCharacter = '░';
 const pathCharacter = '*';
 
+const inputWidth = process.argv[2];
+const inputHeight = process.argv[3];
+const inputProportionHoles = process.argv[4];
+const inputCheckImpossible = process.argv[5];
+
 class Field {
   constructor(array) {
     array.forEach(x => {
@@ -30,7 +35,16 @@ class Field {
   }
   //methods
   static generateField(width, height, proportionHoles, checkImpossible) {
-
+    if (!width) { //dealing with missing arguments.
+        width = 5;
+    }
+    if (!height) {
+        height = 5;
+    }
+    if (!proportionHoles) {
+        proportionHoles = 0.2;
+    }
+    
     let emptyRow = []; //generate row with correct width.
     for (let i = 0; i < width; i++) {
         emptyRow.push(fieldCharacter);
@@ -41,6 +55,7 @@ class Field {
         field.push(emptyRow.slice());
     };
     field[0][0] = pathCharacter;
+
     const numberOfHoles = Math.floor(width*height*proportionHoles); //calculate required number of holes.
     const getRandomPosition = () => { //get random position in field [y,x].
         return [Math.floor(Math.random()*height), Math.floor(Math.random()*width)];
@@ -54,14 +69,17 @@ class Field {
         };
         field[randomPosition[0]][randomPosition[1]] = hole;
     };
+
     if (field[height - 1].every(x => x === hole)) {
-        throw new Error('Impossible field generated. Try again or reduce proportion of holes.');
+        throw new Error('Impossible field generated. Try again or reduce proportion of holes.'); //throw error if entire bottom row is holes.
     }
-    let randomWidth = Math.floor(Math.random()*width);
+
+    let randomWidth = Math.floor(Math.random()*width); //finding a free tile on the bottom row for hat.
     while (field[height - 1][randomWidth] === hole) {
         randomWidth = Math.floor(Math.random()*width);
     }
-    field[height-1][randomWidth] = hat;
+    field[height-1][randomWidth] = hat; //replace free bottom row tile with hat.
+
     return field;
   }
   print() {
@@ -128,7 +146,7 @@ const gameField = new Field([
   [hole, fieldCharacter, hat]
 ]); */
 
-const gameField = new Field(Field.generateField(7, 7, 0.2));
+const gameField = new Field(Field.generateField(inputWidth, inputHeight, inputProportionHoles, inputCheckImpossible));
 
 process.stdin.on('data', (data) => gameField.makeMove(data));
 
