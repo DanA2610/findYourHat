@@ -133,12 +133,20 @@ class Field {
             }
         };
 
-        if(this.checkPosition()) { //check for hat/hole.
-            this.field[this.playerPosition[1]][this.playerPosition[0]].symbol = pathCharacter;
-            //changeToPath(); old, see above line.
-            this.print();
-        }
-        }
+        const checkPosition = (() => { //function to check current position for hat or hole. Returns false if hat or hole or true if else.
+            const objectAtPosition = this.field[this.playerPosition[1]][this.playerPosition[0]].symbol;
+            if (objectAtPosition === hat) {
+                process.stdout.write('Congratulations! You found your hat!');
+                return process.exit();
+            } else if (objectAtPosition === hole) {
+                process.stdout.write('Whoops! You fell down a hole. Try again.');
+                return process.exit();
+            }
+        })(); //should immediately execute.
+
+        this.field[this.playerPosition[1]][this.playerPosition[0]].symbol = pathCharacter;
+        this.print();
+    }
 }
 
 const gameField = new Field(Field.generateField(inputWidth, inputHeight, inputProportionHoles, inputCheckImpossible));
