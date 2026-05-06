@@ -12,18 +12,17 @@ const inputCheckImpossible = process.argv[5];
 
 class Field {
     constructor(array) {
-        this._field = array.map(row => row.slice()); //copy array in order to convert elements to objects with xy references.
-        for (let i = 0; i < this._field.length; i++) { //loop over each element in the two-dimensional array.
-            for (let j = 0; j < this._field[i].length; j++) {
-                let storedSymbol = this._field[i][j] //store the input symbol.
-                this._field[i][j] = { //change array element to object with xy reference.
+        this._field = [];
+        for (let i = 0; i < array.length; i++) {
+            for (let j = 0; j < array[i].length; j++) {
+                this._field.push({
                     xypos: [j,i],
-                    symbol: storedSymbol
-                }
+                    symbol: array[i][j]
+                });
             }
         }
-        this._fieldWidth = this._field[0].length;
-        this._fieldHeight = this._field.length;
+        this._fieldWidth = array[0].length;
+        this._fieldHeight = array.length;
         this._playerPosition = [0,0]; //xy position
     }
     get field() {
@@ -98,11 +97,16 @@ class Field {
     }
 
     print() {
-        let arrayToPrint = this._field.map((row) => {
-            return row.map(object => {
-                return object = object.symbol;
-            })
-        })
+        let arrayToPrint = [];
+        for (let i = 0; i < this._fieldHeight; i++) {
+            let row = [];
+            for (let j = 0; j < this._field.length; j++) {
+                if (this._field[j].xypos[1] === i) {
+                    row.push(this._field[j].symbol);
+                }
+            };
+            arrayToPrint.push(row);
+        };
         arrayToPrint.forEach(x => x.push('\n')); //push line breaks to each row.
         let string = arrayToPrint.toString();
         string = string.replaceAll(',', '');
@@ -113,39 +117,43 @@ class Field {
         let input = userInput.toString().trim().toLowerCase(); //convert input to string.
 
         if (input === 'a') { //left
-            if (this.playerPosition[0] > 0) { //check not on left edge of field.
-                this.playerPosition[0] -= 1; //update player position.
-            }
-        };
-        if (input === 'd') { //right
-            if (this.playerPosition[0] < this.fieldWidth - 1) { //check not on right edge of field.
-                this.playerPosition[0] += 1; //update player position.
-            }
-        };
-        if (input === 'w') { //up
-            if (this.playerPosition[1] > 0) { //check not on top row.
-                this.playerPosition[1]--; //update player position.
-            }
-        };
-        if (input === 's') { //down
-            if (this.playerPosition[1] < this.fieldHeight - 1) { //check not on bottom row.
-                this.playerPosition[1]++; //update player position.
-            }
+            this.playerPosition[0] -= 1; //update player position.  
+        }; if (input === 'd') { //right
+            this.playerPosition[0] += 1; //update player position.
+        }; if (input === 'w') { //up
+            this.playerPosition[1]--; //update player position.
+        }; if (input === 's') { //down
+            this.playerPosition[1]++; //update player position. 
+        }; if (this.playerPosition[0] < 0) { //next 8 lines are checking for out of bounds and moving back in bounds.  
+            this.playerPosition[0] = 0;
+        }; if (this.playerPosition[0] >= this.fieldWidth) {
+            this.playerPosition[0] = this.fieldWidth - 1;
+        }; if (this.playerPosition[1] < 0) {
+            this.playerPosition[1] = 0;
+        }; if (this.playerPosition[1] >= this.fieldHeight) {
+            this.playerPosition[1] = this.fieldHeight - 1;
         };
 
-        const checkPosition = (() => { //function to check current position for hat or hole. Returns false if hat or hole or true if else.
-            const objectAtPosition = this.field[this.playerPosition[1]][this.playerPosition[0]].symbol;
-            if (objectAtPosition === hat) {
+        const fieldObjectAtPosition = this.field.find(x => x.xypos[0] === this.playerPosition[0] && x.xypos[1] === this.playerPosition[1]); //get field object at player's position.
+        const checkPosition = (() => { //function to check current position for hat or hole. Fails game if hat or hole.
+            const symbolAtPosition = fieldObjectAtPosition.symbol;
+            if (symbolAtPosition === hat) {
                 process.stdout.write('Congratulations! You found your hat!');
                 return process.exit();
-            } else if (objectAtPosition === hole) {
+            } else if (symbolAtPosition === hole) {
                 process.stdout.write('Whoops! You fell down a hole. Try again.');
                 return process.exit();
             }
         })(); //should immediately execute.
-
-        this.field[this.playerPosition[1]][this.playerPosition[0]].symbol = pathCharacter;
+        fieldObjectAtPosition.symbol = pathCharacter; //change symbol to path character.
         this.print();
+    }
+
+    checkImpossible() {
+        let passableField = this.field.filter(x => x.symbol !== hole); //remove holes from field array.
+        passableField = passableField.map(x => x.xypos) //maps the passableField array to just the xypos arrays, to be compatible with the pathCheck function.
+        const hatPosition = this.field.find(x => x.symbol === hat).xypos; //find xypos of hat object.
+        return checkPath(passableField, [0,0], hatPosition) //check for possible path.
     }
 }
 
