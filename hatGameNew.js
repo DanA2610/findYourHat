@@ -9,7 +9,6 @@ const pathCharacter = '*';
 const inputWidth = process.argv[2];
 const inputHeight = process.argv[3];
 const inputProportionHoles = process.argv[4];
-const inputCheckImpossible = process.argv[5];
 
 class Field {
     constructor(array) {
