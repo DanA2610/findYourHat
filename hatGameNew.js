@@ -1,4 +1,5 @@
 const prompt = require('prompt-sync')({sigint: true});
+const checkPath = require('./pathChecker.js'); 
 
 const hat = '^';
 const hole = 'O';
@@ -45,7 +46,7 @@ class Field {
         this._playerPosition = pos;
     }
 
-    static generateField(width, height, proportionHoles, checkImpossible) { //imported from old version, should work fine...
+    static generateField(width, height, proportionHoles) { //imported from old version, should work fine...
         if (!width) { //dealing with missing arguments.
             width = 5;
         }
@@ -59,7 +60,6 @@ class Field {
         let emptyRow = []; //generate row with correct width.
         for (let i = 0; i < width; i++) {
             emptyRow.push(fieldCharacter);
-            //console.log(emptyRow);
         };
         let field = []; //fill array with rows until correct height.
         for (let i = 0; i < height; i++) {
@@ -81,11 +81,11 @@ class Field {
             field[randomPosition[0]][randomPosition[1]] = hole;
         };
 
-        for (let i = 0; i < field.length; i++) {
+        /* for (let i = 0; i < field.length; i++) {
             if (field[i].every(x => x === hole)) {
                 throw new Error('Impossible field generated. Try again or reduce proportion of holes.'); //throw error if entire bottom row is holes.
             }
-        }
+        } */
 
         let randomWidth = Math.floor(Math.random()*width); //finding a free tile on the bottom row for hat.
         while (field[height - 1][randomWidth] === hole) {
@@ -157,7 +157,12 @@ class Field {
     }
 }
 
-const gameField = new Field(Field.generateField(inputWidth, inputHeight, inputProportionHoles, inputCheckImpossible));
+const gameField = new Field(Field.generateField(inputWidth, inputHeight, inputProportionHoles));
+
+if (!gameField.checkImpossible()) { //run error check from pathChecker.js.
+    console.error('Error: Impossible field generated. Try again or reduce proportion of holes.');
+    process.exit();
+}
 
 process.stdin.on('data', (data) => gameField.makeMove(data));
 
